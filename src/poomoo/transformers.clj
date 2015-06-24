@@ -10,8 +10,8 @@
 
 ;; TODO: (among many other things) Add a specification for example maps. (RM
 ;;       2015-06-21)
-(defn transform-raw-example [jar-coords]
-  (fn [m e]
+(defn transform-raw-example [jar-coords m]
+  (fn [e]
     (if (empty-example? e)
       nil
       {:content (string/replace (safe-get e :content) #"\n\s*" "\n")
@@ -19,8 +19,8 @@
        :coords jar-coords})))
 
 (defn process-raw [jar-coords]
-  (fn [v]
-    (let [processed-exs (mapv-some (transform-raw-example jar-coords) v)]
+  (fn [m v]
+    (let [processed-exs (mapv-some (transform-raw-example jar-coords m) v)]
       (if (empty? processed-exs)
         nil
-        [:poomoo.ext/examples ]))))
+        [:poomoo.ext/examples processed-exs]))))
