@@ -47,30 +47,36 @@
 
    :postprocessed
    (fnk [ext-metadata jar-coords]
-     (println ext-metadata)
-     (map (gr-trans/transform-ext :poomoo.ext/ex-raw
-                                  (poomoo.transformers/process-raw jar-coords))
+     (map (gr-trans/apply-if def?
+                             (gr-trans/transform-ext
+                               :poomoo.ext/ex-raw
+                               (poomoo.transformers/process-raw jar-coords)))
           ext-metadata))
 
    :merged
-   (fnk* [dp-metadata postprocessed] gr-merge/simple-merge)
+   (fnk* [dp-metadata postprocessed] ((gr-merge/simple-merge)))
+     ; Strange syntax because of fnk*.
 
    :exported-files
    (fnk* [merged hier-out-dir] gr-exp/fs-hier)
 
    :jar-export-res
-   (fnk* [hier-out-dir jar-out-dir jar-coords] gr/jar-from-files)})
+   (fnk [exported-files hier-out-dir jar-out-dir jar-coords]
+     (gr/jar-from-files hier-out-dir jar-out-dir jar-coords))})
+     ; We have to export the files first, but don't need the actual argument.
 
-(defn get-common-config []
-  {:dp-metadata
-   (gr-clj-src/clj-entity-src
-    ['org.clojure/clojure "1.7.0-RC2"]
-    ['clj-grenada/darkestperu "0.1.0-SNAPSHOT"]
-    {:group "clj-grenada"
-     :name "darkestperu"
-     :version "0.1.0-SNAPSHOT"})
+(def get-common-config
+  (memoize
+    (fn []
+      {:dp-metadata
+       (gr-clj-src/clj-entity-src
+         ['org.clojure/clojure "1.7.0-RC2"]
+         ['clj-grenada/darkestperu "0.1.0-SNAPSHOT"]
+         {:group "clj-grenada"
+          :name "darkestperu"
+          :version "0.1.0-SNAPSHOT"})
 
-   :ext-metadata-file "darkestperu-examples.edn"})
+       :ext-metadata-file "darkestperu-examples.edn"})))
 
 (comment
 
@@ -80,14 +86,13 @@
    :export-res)
 
   (refresh)
-
-  ((graph/lazy-compile produce-jar-graph)
+  (((graph/eager-compile produce-jar-graph)
    (merge (get-common-config)
-          {:hier-out-dir "grenada-data"
-           :jar-out-dir "target/grenada"
+          {:hier-out-dir "/home/erle/repos/dp-examples/grenada-data"
+           :jar-out-dir "/home/erle/repos/dp-examples/target/grenada"
            :jar-coords {:group "org.clojars.rmoehn"
                         :name "darkestperu-examples"
                         :version "0.1.0-SNAPSHOT"}}))
-  (def res *1)
+   :jar-export-res)
 
   )
