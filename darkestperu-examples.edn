@@ -1,0 +1,110 @@
+({:name "darkestperu.jar",
+  :level :grimoire.things/namespace,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.jar"]}
+ {:name "make-jar",
+  :level :grimoire.things/def,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.jar"
+   "make-jar"],
+  :extensions 
+  {:poomoo.ext/ex-raw 
+   [{:name "silly REPL session", 
+     :content "user=> (+ 4 5)
+               9"}]}}
+ {:name "relativize-path",
+  :level :grimoire.things/def,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.jar"
+   "relativize-path"],
+  :extensions {:poomoo.ext/ex-raw [{:name "", :content ""}]}}
+ {:name "darkestperu.manifest",
+  :level :grimoire.things/namespace,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.manifest"]}
+ {:name "ManifestMap",
+  :level :grimoire.things/def,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.manifest"
+   "ManifestMap"],
+  :extensions {:poomoo.ext/ex-raw [{:name "", :content ""}]}}
+ {:name "VersionNumber",
+  :level :grimoire.things/def,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.manifest"
+   "VersionNumber"],
+  :extensions {:poomoo.ext/ex-raw [{:name "", :content ""}]}}
+ {:name "into-attrs",
+  :level :grimoire.things/def,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.manifest"
+   "into-attrs"],
+  :extensions {:poomoo.ext/ex-raw [{:name "", :content ""}]}}
+ {:name "kw->manifest-key",
+  :level :grimoire.things/def,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.manifest"
+   "kw->manifest-key"],
+  :extensions {:poomoo.ext/ex-raw [{:name "", :content ""}]}}
+ {:name "map->manifest",
+  :level :grimoire.things/def,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.manifest"
+   "map->manifest"],
+  :extensions {:poomoo.ext/ex-raw [{:name "", :content ""}]}}
+ {:name "separate",
+  :level :grimoire.things/def,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.manifest"
+   "separate"],
+  :extensions {:poomoo.ext/ex-raw [{:name "", :content ""}]}}
+ {:name "uppercase-hyph-words",
+  :level :grimoire.things/def,
+  :coords
+  ["clj-grenada"
+   "darkestperu"
+   "0.1.0-SNAPSHOT"
+   "clj"
+   "darkestperu.manifest"
+   "uppercase-hyph-words"],
+  :extensions {:poomoo.ext/ex-raw [{:name "", :content ""}]}})
