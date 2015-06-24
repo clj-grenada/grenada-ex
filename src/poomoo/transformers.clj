@@ -2,15 +2,20 @@
   (:require [clojure.string :as string]
             [plumbing.core :refer [safe-get]]))
 
-(defn mapv-some [& args]
+;;;; Universal helper
+
+(defn- mapv-some [& args]
   (filter some? (apply mapv args)))
 
-(defn empty-example? [ex]
+
+;;;; The transformer
+
+(defn- empty-example? [ex]
   (= ex {:name "" :content ""}))
 
 ;; TODO: (among many other things) Add a specification for example maps. (RM
 ;;       2015-06-21)
-(defn transform-raw-example [jar-coords m]
+(defn- transform-raw-example [jar-coords m]
   (fn [e]
     (if (empty-example? e)
       nil

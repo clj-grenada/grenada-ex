@@ -53,6 +53,7 @@
                                (poomoo.transformers/process-raw jar-coords)))
           ext-metadata))
 
+   ;; TODO: We need a merger for examples. (RM 2015-06-24)
    :merged
    (fnk* [dp-metadata postprocessed] ((gr-merge/simple-merge)))
      ; Strange syntax because of fnk*.
