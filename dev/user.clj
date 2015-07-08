@@ -4,12 +4,13 @@
             [clojure.tools.namespace.repl :refer [refresh]]
             [plumbing.graph :as graph]
             [plumbing.core :refer [fnk safe-get]]
-            [grenada-lib.util :refer [fnk*]]
-            [grenada-lib.sources.clj :as gr-clj-src]
-            [grenada-lib.core :as gr]
-            [grenada-lib.transformers :as gr-trans]
-            [grenada-lib.exporters :as gr-exp]
-            [grenada-lib.mergers :as gr-merge]
+            [grenada.utils :refer [fnk*]]
+            [grenada.sources.clj :as gr-clj-src]
+            [grenada.core :as gr]
+            [grenada.transformers :as gr-trans]
+            [grenada.exporters :as gr-exp]
+            [grenada.mergers :as gr-merge]
+            [grenada.things :as t]
             poomoo.transformers))
 
 (clojure.tools.namespace.repl/set-refresh-dirs
@@ -17,27 +18,24 @@
   "dev"
   "checkouts/grenada-lib/src")
 
-;; TODO: This has to become a Guten-tag predicate. (RM 2015-06-21)
-(defn def? [m]
-  (= (safe-get m :level) :grimoire.things/def))
-
 (def produce-skeleton-graph
   "Input nodes: dp-metadata ext-metadata-file"
-  {:stripped
-   (fnk* [dp-metadata] (map gr-trans/strip-all))
+  {:nicely-sorted
+   (fnk* [dp-metadata] gr-trans/reorder-for-output)
+
+   :stripped
+   (fnk* [nicely-sorted] (map gr-trans/strip-all))
 
    :with-ext
    (fnk* [stripped] (map (gr-trans/apply-if
-                           def?
+                           t/def?
                            (gr-trans/add-ext
                              :poomoo.ext/ex-raw
                              [{:name "" :content ""}]))))
 
-   :nicely-sorted
-   (fnk* [with-ext] gr-trans/reorder-for-output)
-
    :export-res
-   (fnk* [nicely-sorted ext-metadata-file] gr-exp/pprint-fs-flat)})
+   (fnk [with-ext ext-metadata-file]
+     (gr-exp/pprint-fs-flat with-ext ext-metadata-file :overwrite))})
 
 (def produce-jar-graph
   "Input nodes: dp-metadata ext-metadata-file hier-out-dir jar-out-dir
@@ -47,7 +45,7 @@
 
    :postprocessed
    (fnk [ext-metadata jar-coords]
-     (map (gr-trans/apply-if def?
+     (map (gr-trans/apply-if t/def?
                              (gr-trans/transform-ext
                                :poomoo.ext/ex-raw
                                (poomoo.transformers/process-raw jar-coords)))
@@ -71,13 +69,13 @@
     (fn []
       {:dp-metadata
        (gr-clj-src/clj-entity-src
-         ['org.clojure/clojure "1.7.0-RC2"]
+         ['org.clojure/clojure "1.7.0"]
          ['clj-grenada/darkestperu "0.1.0-SNAPSHOT"]
          {:group "clj-grenada"
-          :name "darkestperu"
+          :artifact "darkestperu"
           :version "0.1.0-SNAPSHOT"})
 
-       :ext-metadata-file "darkestperu-examples.edn"})))
+       :ext-metadata-file "darkestperu-examples-gt.edn"})))
 
 (comment
 
@@ -92,7 +90,7 @@
           {:hier-out-dir "/home/erle/repos/dp-examples/grenada-data"
            :jar-out-dir "/home/erle/repos/dp-examples/target/grenada"
            :jar-coords {:group "org.clojars.rmoehn"
-                        :name "darkestperu-examples"
+                        :artifact "darkestperu-examples"
                         :version "0.1.0-SNAPSHOT"}}))
    :jar-export-res)
 
