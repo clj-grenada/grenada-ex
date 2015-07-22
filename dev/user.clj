@@ -12,6 +12,7 @@
             [grenada.things :as t]
             [grimoire.api :as grim]
             [grimoire.either :as either]
+            [grimoire.things :as grim-t]
             [grimoire.api
              [fs :as api.fs]]
             grimoire.api.fs.read))
@@ -49,6 +50,38 @@
                                       "datastore"
                                       "datastore"))
 
+(def grim-tag->gren-tag {::grim-t/group    ::t/group
+                         ::grim-t/artifact ::t/artifact
+                         ::grim-t/version  ::t/version
+                         ::grim-t/platform ::t/platfom
+                         ::grim-t/ns       ::t/namespace
+                         ::grim-t/def      ::t/find})
+
+(defmulti grim-thing->gren-thing gt/tag)
+
+(defmethod grim-thing->gren-thing ::grim-t/group [g]
+  (->> (t/make-thing {:coords [(safe-get g :name)]})
+       (t/attach-aspect t/def-for-aspect ::t/group)))
+
+(defmethod grim-thing->gren-thing ::grim-t/artifact [a]
+  (->> (t/make-thing {:coords [(plumbing/safe-get-in a [:parent :name])
+                               (safe-get a :name)]})
+       (t/attach-aspect t/def-for-aspect ::t/artifact)))
+
+(defn get-all-coords [grim-thing]
+  (let [gren-tag (safe-get grim-tag->gren-tag (gt/tag grim-thing))
+        ncoords (plumbing/safe-get-in t/def-for-aspect [gren-tag :ncoords])]
+    (-> (for [depth (reverse (range ncoords))
+              :let [ks (-> (repeat depth :parent)
+                           vec
+                           (conj :name))]]
+          (plumbing/safe-get-in grim-thing ks))
+        vec)))
+
+(defmethod grim-thing->gren-thing ::grim-t/def [d]
+  (->> (t/make-thing ))
+  )
+
 (def everything
   (memoize
     (fn everything-fn []
@@ -65,3 +98,12 @@
            (remove #(= ".git" (safe-get % :name)))
            (map #(vector %
                          (either/result (grim/read-meta lib-grim-config %))))))))
+
+(comment
+
+
+  (grim-thing->gren-thing (first (second (everything))))
+
+  (get-all-coords (first (first (everything))))
+
+  )
