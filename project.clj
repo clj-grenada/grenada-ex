@@ -7,6 +7,7 @@
                  [org.clj-grenada/lib-grenada "0.2.1"]
                  [prismatic/plumbing "0.4.4"]
                  [me.arrdem/guten-tag "0.1.4"]
+                 [org.clojure-grimoire/lib-grimoire "0.10.2"]
 
                  ; dependencies to be scraped
                  [clj-grenada/darkestperu "0.1.0-SNAPSHOT"]]
