@@ -4,7 +4,7 @@
   :license {:name "MIT License"
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clj-grenada/lib-grenada "0.2.0-SNAPSHOT"]
+                 [org.clj-grenada/lib-grenada "0.2.1"]
                  [prismatic/plumbing "0.4.4"]
                  [me.arrdem/guten-tag "0.1.4"]
 
