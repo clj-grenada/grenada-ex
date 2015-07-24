@@ -4,12 +4,14 @@
             [clojure.tools.namespace.repl :refer [refresh]]
             [clojure.pprint :refer [pprint]]
             [plumbing.graph :as graph]
-            [plumbing.core :refer [fnk safe-get] :as plumbing]
+            [plumbing.core :refer [fnk safe-get safe-get-in ?>] :as plumbing]
             [guten-tag.core :as gt]
             [grenada.utils :refer [fnk*]]
             [grenada.core :as gr]
             [grenada.transformers :as gr-trans]
-            [grenada.things :as t]
+            [grenada
+             [aspects :as a]
+             [things :as t]]
             [grimoire.api :as grim]
             [grimoire.either :as either]
             [grimoire.things :as grim-t]
@@ -60,27 +62,42 @@
 (defmulti grim-thing->gren-thing gt/tag)
 
 (defmethod grim-thing->gren-thing ::grim-t/group [g]
-  (->> (t/make-thing {:coords [(safe-get g :name)]})
+  (->> (t/map->thing {:coords [(safe-get g :name)]})
        (t/attach-aspect t/def-for-aspect ::t/group)))
 
 (defmethod grim-thing->gren-thing ::grim-t/artifact [a]
-  (->> (t/make-thing {:coords [(plumbing/safe-get-in a [:parent :name])
+  (->> (t/map->thing {:coords [(safe-get-in a [:parent :name])
                                (safe-get a :name)]})
        (t/attach-aspect t/def-for-aspect ::t/artifact)))
 
 (defn get-all-coords [grim-thing]
   (let [gren-tag (safe-get grim-tag->gren-tag (gt/tag grim-thing))
-        ncoords (plumbing/safe-get-in t/def-for-aspect [gren-tag :ncoords])]
+        ncoords (safe-get-in t/def-for-aspect [gren-tag :ncoords])]
     (-> (for [depth (reverse (range ncoords))
               :let [ks (-> (repeat depth :parent)
                            vec
                            (conj :name))]]
-          (plumbing/safe-get-in grim-thing ks))
+          (safe-get-in grim-thing ks))
         vec)))
 
+(defn determine-aspects [d]
+  (let [meta-m (safe-get d :meta)
+        t      (safe-get meta-m :type)]
+   (case t
+    :fn      [::a/var-backed ::a/fn]
+    :macro   [::a/var-backed ::a/macro]
+    :var     [::a/var-backed]
+    :special (-> [::a/special]
+                 (?> (get meta-m :special-form) (conj ::a/var-backed))
+                 (?> (get meta-m :macro)        (conj ::a/macro)))
+
+    (throw (IllegalArgumentException.
+             (str "Unknown type of def: " t))))))
+
 (defmethod grim-thing->gren-thing ::grim-t/def [d]
-  (->> (t/make-thing ))
-  )
+  (->> (t/map->thing {:coords (get-all-coords d)})
+       (t/attach-aspect t/def-for-aspect ::t/find)
+       (t/attach-aspects a/def-for-aspect (determine-aspects d))))
 
 (def everything
   (memoize
@@ -96,13 +113,19 @@
            (map either/result)
            plumbing/aconcat
            (remove #(= ".git" (safe-get % :name)))
-           (map #(vector %
-                         (either/result (grim/read-meta lib-grim-config %))))))))
+           (map #(assoc %
+                        :meta
+                        (either/result (grim/read-meta lib-grim-config %))))
+           (remove #(and (grim-t/def? %)
+                         (= :sentinel (safe-get-in % [:meta :type]))))))))
 
 (comment
 
+  (grim/list-groups lib-grim-config)
 
-  (grim-thing->gren-thing (first (second (everything))))
+  (first (everything))
+
+  (pprint (grim-thing->gren-thing (nth (everything) 900)))
 
   (get-all-coords (first (first (everything))))
 
