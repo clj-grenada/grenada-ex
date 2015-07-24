@@ -52,23 +52,15 @@
                                       "datastore"
                                       "datastore"))
 
-(def grim-tag->gren-tag {::grim-t/group    ::t/group
-                         ::grim-t/artifact ::t/artifact
-                         ::grim-t/version  ::t/version
-                         ::grim-t/platform ::t/platfom
-                         ::grim-t/ns       ::t/namespace
-                         ::grim-t/def      ::t/find})
-
-(defmulti grim-thing->gren-thing gt/tag)
-
-(defmethod grim-thing->gren-thing ::grim-t/group [g]
-  (->> (t/map->thing {:coords [(safe-get g :name)]})
-       (t/attach-aspect t/def-for-aspect ::t/group)))
-
-(defmethod grim-thing->gren-thing ::grim-t/artifact [a]
-  (->> (t/map->thing {:coords [(safe-get-in a [:parent :name])
-                               (safe-get a :name)]})
-       (t/attach-aspect t/def-for-aspect ::t/artifact)))
+;; A bit repetitive, but at least it allows me to easily check whether an
+;; I've covered all the cases and whether there is anything foul in the state of
+;; the input data.
+(def grim-tag->gren-tag {::grim-t/group     ::t/group
+                         ::grim-t/artifact  ::t/artifact
+                         ::grim-t/version   ::t/version
+                         ::grim-t/platform  ::t/platform
+                         ::grim-t/namespace ::t/namespace
+                         ::grim-t/def       ::t/find})
 
 (defn get-all-coords [grim-thing]
   (let [gren-tag (safe-get grim-tag->gren-tag (gt/tag grim-thing))
@@ -94,10 +86,19 @@
     (throw (IllegalArgumentException.
              (str "Unknown type of def: " t))))))
 
+(defmulti grim-thing->gren-thing gt/tag)
+
 (defmethod grim-thing->gren-thing ::grim-t/def [d]
   (->> (t/map->thing {:coords (get-all-coords d)})
        (t/attach-aspect t/def-for-aspect ::t/find)
        (t/attach-aspects a/def-for-aspect (determine-aspects d))))
+
+(defmethod grim-thing->gren-thing :default [t]
+  (if-let [gren-tag (get grim-tag->gren-tag (gt/tag t))]
+    (->> (t/map->thing {:coords (get-all-coords t)})
+         (t/attach-aspect t/def-for-aspect gren-tag))
+    (throw (IllegalArgumentException.
+             (str "Unknown Grimoire type of Grimoire thing: " (pr-str t))))))
 
 (def everything
   (memoize
@@ -125,7 +126,7 @@
 
   (first (everything))
 
-  (pprint (grim-thing->gren-thing (nth (everything) 900)))
+  (map grim-thing->gren-thing (everything))
 
   (get-all-coords (first (first (everything))))
 
