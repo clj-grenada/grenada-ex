@@ -11,7 +11,9 @@
             [grenada.transformers :as gr-trans]
             [grenada
              [aspects :as a]
+             [bars :as b]
              [things :as t]]
+            [grenada.things.utils :as t-utils]
             [grimoire.api :as grim]
             [grimoire.either :as either]
             [grimoire.things :as grim-t]
@@ -116,17 +118,31 @@
            (remove #(= ".git" (safe-get % :name)))
            (map #(assoc %
                         :meta
-                        (either/result (grim/read-meta lib-grim-config %))))
+                        (or (either/result (grim/read-meta lib-grim-config %))
+                            {})))
            (remove #(and (grim-t/def? %)
                          (= :sentinel (safe-get-in % [:meta :type]))))))))
+
+(def everything-grenada
+  (memoize
+    (fn everything-grenada-fn []
+      (map (fn map-fn [grim-t]
+             (->> grim-t
+                  grim-thing->gren-thing
+                  (t/attach-bar b/def-for-bar-type
+                                ::b/any
+                                (t-utils/safe-get grim-t :meta))))
+           (everything)))))
 
 (comment
 
   (grim/list-groups lib-grim-config)
 
-  (first (everything))
+  (keys (first (everything)))
 
-  (map grim-thing->gren-thing (everything))
+
+  (everything-grenada)
+
 
   (get-all-coords (first (first (everything))))
 
