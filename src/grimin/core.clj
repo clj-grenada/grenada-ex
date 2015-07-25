@@ -4,8 +4,10 @@
     [grenada
      [aspects :as a]
      [bars :as b]
-     [things :as t]]
+     [things :as t]
+     [utils :as g-utils]]
     [grenada.things.utils :as t-utils]
+    grimin.bars
     [grimoire
      [api :as grim]
      [either :as either]
@@ -76,6 +78,30 @@
            plumbing/aconcat
            (remove #(= ".git" (safe-get % :name)))))))
 
+;; REVIEW: New versions of lib-grimoire might allow examples on non-def Things.
+;;         (RM 2015-07-25)
+;; REVIEW: Here we might get exceptions when we want to read examples from a
+;;         Thing that has not examples and whose earlier versions don't have
+;;         examples either. If that is really the case, Grimoire is a bit
+;;         strange, but we have to live with it. (RM 2015-07-25)
+;;
+;; Note: Don't be fooled by the doc string of grimoire.api/list-examples.
+(def read-examples
+  (memoize
+    (fn read-examples-fn [config thing]
+      (if (grim-t/def? thing)
+        (map #(assoc % :contents (either/result (grim/read-example config %)))
+             (either/result (grim/list-examples config thing)))
+        []))))
+
+(defn maybe-attach-examples [grim-exs gren-thing]
+  (if-not (empty? grim-exs)
+    (t/attach-bar grimin.bars/def-for-bar-type
+                  :grimin.bars/examples
+                  (map #(t-utils/safe-select-keys % #{:name :contents})
+                       grim-exs)
+                  gren-thing)))
+
 (def attach-meta
   (memoize
     (fn attach-meta-fn [lib-grim-config grim-things]
@@ -85,7 +111,9 @@
                         (or (either/result (grim/read-meta lib-grim-config %))
                             {})))
            (remove #(and (grim-t/def? %)
-                         (= :sentinel (safe-get-in % [:meta :type]))))))))
+                         (= :sentinel (safe-get-in % [:meta :type]))))
+           (map #(assoc % :examples
+                        (read-examples lib-grim-config %)))))))
 
 (defn grim-with-meta->gren [grim-things-with-meta]
   (map (fn map-fn [grim-t]
@@ -93,5 +121,6 @@
               grim-thing->gren-thing
               (t/attach-bar b/def-for-bar-type
                             ::b/any
-                            (t-utils/safe-get grim-t :meta))))
+                            (t-utils/safe-get grim-t :meta))
+              (maybe-attach-examples (t-utils/safe-get grim-t :examples))))
        grim-things-with-meta))

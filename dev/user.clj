@@ -6,7 +6,11 @@
             [plumbing.graph :as graph]
             [plumbing.core :refer [fnk safe-get safe-get-in ?>] :as plumbing]
             [guten-tag.core :as gt]
+            [grenada.converters :as converters]
             [grimin.core :as grimin]
+            [grimoire
+             [api :as grim]
+             [either :as either]]
             [grimoire.api.fs :as api.fs]))
 
 ;;; In this example I will read in the Clojure documentation as provided by
@@ -43,6 +47,22 @@
                                       "datastore"))
 
 (comment
+
+  (->> (grimin/read-all-things lib-grim-config)
+       (grimin/attach-meta lib-grim-config)
+       (grimin/grim-with-meta->gren)
+       last)
+
+  (->> (grim/search lib-grim-config
+                   [:def "org.clojure" "clojure" "1.6.0" "clj" "clojure.core" "re-seq"])
+       either/result
+       first
+       (grim/list-examples lib-grim-config)
+       either/result
+       (map #(grim/read-example lib-grim-config %))
+       (map (fn [x]
+              (either/result x)))
+       pprint)
 
   (grim/list-groups lib-grim-config)
 
