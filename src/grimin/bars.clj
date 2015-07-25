@@ -14,18 +14,9 @@
    - `:name` is the name of the example. – We take this from lib-grimoire, so
      it's probably the file name and won't be fancy.
 
-   - `:version` is the version coordinate of the Thing the example was
-     originally added to. This is a Grimoire peculiarity: when you add an
-     example to a Thing, it means you're adding it to this Thing and all later
-     versions of it.
-
-     So if you ask for the examples of `clojure.core/map` in JVM Clojure 1.7.0,
-     you will also get examples for `clojure.core/map` in JVM Clojure 1.6.0,
-     1.5.0 etc.
-
-   - `:name`, `:version` of an example and the coordinates of the Thing it is
-     attached to are expected to uniquely identify the example within one
-     version of a Grenada artifact.
+   - The `:name` of an example and the coordinates of the Thing it is attached
+     to are expected to uniquely identify the example within one version of a
+     Grenada artifact.
 
    - The `:contents` are simply the data returned by
      clj::grimoire.api/read-example (minus `Success` wrapper).
@@ -46,8 +37,7 @@
   (things.def/map->bar-type
     {:name ::examples
      :schema [{:name s/Str
-               :version s/Str
                :contents s/Str}]}))
 
 (def def-for-bar-type
-  #{examples-def})
+  (things.def/map-from-defs #{examples-def}))
