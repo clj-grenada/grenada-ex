@@ -80,12 +80,17 @@
 
 ;; REVIEW: New versions of lib-grimoire might allow examples on non-def Things.
 ;;         (RM 2015-07-25)
-;; REVIEW: Here we might get exceptions when we want to read examples from a
-;;         Thing that has not examples and whose earlier versions don't have
-;;         examples either. If that is really the case, Grimoire is a bit
-;;         strange, but we have to live with it. (RM 2015-07-25)
 ;;
-;; Note: Don't be fooled by the doc string of grimoire.api/list-examples.
+;; Notes:
+;;
+;;  - The doc string of grimoire.api/list-examples is a bit strange. It sounds
+;;    like list-examples would return Fail if there are no examples for a
+;;    given Thing. This would be a behaviour I wouldn't approve of. – Returning
+;;    a Success with an empty list would make more sense to me. Luckily this is
+;;    indeed what happens.
+;;
+;;  - Don't be fooled by the doc string of grimoire.api/list-examples.
+;;
 (def read-examples
   (memoize
     (fn read-examples-fn [config thing]
@@ -93,15 +98,24 @@
         (map #(assoc % :contents (either/result (grim/read-example config %)))
              (either/result (grim/list-examples config thing)))
         []))))
-;; REVIEW: See REVIEW about exceptions on read-examples. (RM 2015-07-25)
+
+;; Note:
 ;;
-;; Note: This looks kind of similar to read-examples, but it doesn't have the
-;;       grim-t/def? clause, because all Things support notes.
+;;  - This looks kind of similar to read-examples, but it doesn't have the
+;;    grim-t/def? clause, because all Things support notes.
+;;
+;;  - Unfortunately it also doesn't do the thing that's more sensible than the
+;;    doc string as list-examples does. (See note above.) It Fails if there are
+;;    no notes on a group. So we need a different clause.
+;;
 (def read-notes
   (memoize
     (fn read-notes-fn [config thing]
-      (map #(assoc % :contents (either/result (grim/read-note config %)))
-           (either/result (grim/list-notes config thing))))))
+      (let [notes (grim/list-notes config thing)]
+        (if (or (not (grim-t/group? thing)) (either/succeed? notes))
+          (map #(assoc % :contents (either/result (grim/read-note config %)))
+               (either/result notes))
+          [])))))
 
 (defn maybe-attach
   "
