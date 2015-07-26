@@ -39,5 +39,21 @@
      :schema [{:name s/Str
                :contents s/Str}]}))
 
+(def notes-def
+  "Definition of the Bar type `::notes`.
+
+  ## Model
+
+  Bars of this type can hold notes taken from a **Grimoire** data store. For the
+  shape, see the Schema below.
+
+  Apart from the different meaning, Grimoire notes are nearly the same as
+  Grimoire examples. See clj::grimin.bars/examples-def and substitute 'example'
+  with 'note' where appropriate."
+  (things.def/map->bar-type
+    {:name ::notes
+     :schema [{:name s/Str
+               :contents s/Str}]}))
+
 (def def-for-bar-type
-  (things.def/map-from-defs #{examples-def}))
+  (things.def/map-from-defs #{examples-def notes-def}))
