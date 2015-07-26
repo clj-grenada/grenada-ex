@@ -4,9 +4,12 @@
             [clojure.tools.namespace.repl :refer [refresh]]
             [clojure.pprint :refer [pprint]]
             [plumbing.graph :as graph]
-            [plumbing.core :refer [fnk safe-get safe-get-in ?>] :as plumbing]
+            [plumbing.core :refer [fnk safe-get safe-get-in ?> <-] :as plumbing]
             [guten-tag.core :as gt]
-            [grenada.converters :as converters]
+            [grenada
+             [converters :as converters]
+             [core :as gren-core]
+             [exporters :as exporters]]
             [jolly.core :as jolly]
             [grimoire
              [api :as grim]
@@ -50,23 +53,11 @@
 
   (->> (jolly/read-all-things lib-grim-config)
        (jolly/grim-ts->gren-ts-with-bars lib-grim-config)
-       (filter #(get-in % [:bars :jolly.bars/examples]))
-       pprint)
+       (<- (exporters/fs-hier "grenada-data")))
 
-  (->> (grim/search lib-grim-config
-                   [:artifact "org.clojure" "core.typed"])
-       either/result
-       first
-       (grim/list-notes lib-grim-config)
-       either/result
-       (map #(grim/read-note lib-grim-config %))
-       (map (fn [x]
-              (either/result x)))
-       pprint)
-
-  (grim/list-groups lib-grim-config)
-
-  (jolly/read-all-things lib-grim-config)
-
+  (gren-core/jar-from-files "./grenada-data" "target"
+                            {:group "org.clojars.rmoehn"
+                             :artifact "grim-clj-core"
+                             :version "0.1.0"})
 
   )
