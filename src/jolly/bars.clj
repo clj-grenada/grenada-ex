@@ -1,4 +1,4 @@
-(ns grimin.bars
+(ns jolly.bars
   "Bar types for holding Grimoire data."
   (:require [grenada.things.def :as things.def]
             [schema.core :as s]))
@@ -48,7 +48,7 @@
   shape, see the Schema below.
 
   Apart from the different meaning, Grimoire notes are nearly the same as
-  Grimoire examples. See clj::grimin.bars/examples-def and substitute 'example'
+  Grimoire examples. See clj::jolly.bars/examples-def and substitute 'example'
   with 'note' where appropriate."
   (things.def/map->bar-type
     {:name ::notes

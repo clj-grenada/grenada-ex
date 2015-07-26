@@ -1,4 +1,4 @@
-(ns grimin.core
+(ns jolly.core
   (:require
     [plumbing.core :refer [fnk safe-get safe-get-in ?>] :as plumbing]
     [grenada
@@ -7,7 +7,7 @@
      [things :as t]
      [utils :as g-utils]]
     [grenada.things.utils :as t-utils]
-    grimin.bars
+    jolly.bars
     [grimoire
      [api :as grim]
      [either :as either]
@@ -111,7 +111,7 @@
   sths … somethings"
   [bar-type-tag grim-sths gren-thing]
   (if-not (empty? grim-sths)
-    (t/attach-bar grimin.bars/def-for-bar-type
+    (t/attach-bar jolly.bars/def-for-bar-type
                   bar-type-tag
                   (map #(t-utils/safe-select-keys % #{:name :contents})
                        grim-sths)
@@ -142,8 +142,8 @@
               (t/attach-bar b/def-for-bar-type
                             ::b/any
                             (t-utils/safe-get grim-t :meta))
-              (maybe-attach :grimin.bars/examples
+              (maybe-attach :jolly.bars/examples
                             (t-utils/safe-get grim-t :examples))
-              (maybe-attach :grimin.bars/notes
+              (maybe-attach :jolly.bars/notes
                             (t-utils/safe-get grim-t :notes))))
        grim-things-with-meta))
