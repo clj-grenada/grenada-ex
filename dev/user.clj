@@ -7,7 +7,7 @@
             [plumbing.core :refer [fnk safe-get safe-get-in ?>] :as plumbing]
             [guten-tag.core :as gt]
             [grenada.converters :as converters]
-            [grimin.core :as grimin]
+            [jolly.core :as jolly]
             [grimoire
              [api :as grim]
              [either :as either]]
@@ -48,25 +48,25 @@
 
 (comment
 
-  (->> (grimin/read-all-things lib-grim-config)
-       (grimin/attach-meta lib-grim-config)
-       (grimin/grim-with-meta->gren)
-       last)
+  (->> (jolly/read-all-things lib-grim-config)
+       (jolly/grim-ts->gren-ts-with-bars lib-grim-config)
+       (filter #(get-in % [:bars :jolly.bars/examples]))
+       pprint)
 
   (->> (grim/search lib-grim-config
-                   [:def "org.clojure" "clojure" "1.6.0" "clj" "clojure.core" "re-seq"])
+                   [:artifact "org.clojure" "core.typed"])
        either/result
        first
-       (grim/list-examples lib-grim-config)
+       (grim/list-notes lib-grim-config)
        either/result
-       (map #(grim/read-example lib-grim-config %))
+       (map #(grim/read-note lib-grim-config %))
        (map (fn [x]
               (either/result x)))
        pprint)
 
   (grim/list-groups lib-grim-config)
 
-  (grimin/read-all-things lib-grim-config)
+  (jolly/read-all-things lib-grim-config)
 
 
   )
