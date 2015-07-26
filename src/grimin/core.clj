@@ -93,15 +93,33 @@
         (map #(assoc % :contents (either/result (grim/read-example config %)))
              (either/result (grim/list-examples config thing)))
         []))))
+;; REVIEW: See REVIEW about exceptions on read-examples. (RM 2015-07-25)
+;;
+;; Note: This looks kind of similar to read-examples, but it doesn't have the
+;;       grim-t/def? clause, because all Things support notes.
+(def read-notes
+  (memoize
+    (fn read-notes-fn [config thing]
+      (map #(assoc % :contents (either/result (grim/read-note config %)))
+           (either/result (grim/list-notes config thing))))))
 
-(defn maybe-attach-examples [grim-exs gren-thing]
-  (if-not (empty? grim-exs)
+(defn maybe-attach
+  "
+
+  Works for examples and notes, since they have the same shape.
+
+  sths … somethings"
+  [bar-type-tag grim-sths gren-thing]
+  (if-not (empty? grim-sths)
     (t/attach-bar grimin.bars/def-for-bar-type
-                  :grimin.bars/examples
+                  bar-type-tag
                   (map #(t-utils/safe-select-keys % #{:name :contents})
-                       grim-exs)
+                       grim-sths)
                   gren-thing)))
 
+;; REFACTOR: Merge this with grim-with-meta->gren. It doesn't make sense to put
+;;           :meta, :examples and :notes just do pull them out again in the next
+;;           step. (RM 2015-07-25)
 (def attach-meta
   (memoize
     (fn attach-meta-fn [lib-grim-config grim-things]
@@ -113,7 +131,9 @@
            (remove #(and (grim-t/def? %)
                          (= :sentinel (safe-get-in % [:meta :type]))))
            (map #(assoc % :examples
-                        (read-examples lib-grim-config %)))))))
+                        (read-examples lib-grim-config %)))
+           (map #(assoc % :notes
+                        (read-notes lib-grim-config %)))))))
 
 (defn grim-with-meta->gren [grim-things-with-meta]
   (map (fn map-fn [grim-t]
@@ -122,5 +142,8 @@
               (t/attach-bar b/def-for-bar-type
                             ::b/any
                             (t-utils/safe-get grim-t :meta))
-              (maybe-attach-examples (t-utils/safe-get grim-t :examples))))
+              (maybe-attach :grimin.bars/examples
+                            (t-utils/safe-get grim-t :examples))
+              (maybe-attach :grimin.bars/notes
+                            (t-utils/safe-get grim-t :notes))))
        grim-things-with-meta))
