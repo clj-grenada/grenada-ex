@@ -1,6 +1,6 @@
 (ns jolly.core
   (:require
-    [plumbing.core :refer [fnk safe-get safe-get-in ?>] :as plumbing]
+    [plumbing.core :refer [fnk safe-get safe-get-in ?> ?>>] :as plumbing]
     [grenada
      [aspects :as a]
      [bars :as b]
@@ -35,28 +35,27 @@
           (safe-get-in grim-thing ks))
         vec)))
 
-(defn determine-aspects [d]
-  (let [meta-m (safe-get d :meta)
-        t      (safe-get meta-m :type)]
+(defn determine-aspects [grim-meta]
+  (let [t (safe-get grim-meta :type)]
    (case t
     :fn      [::a/var-backed ::a/fn]
     :macro   [::a/var-backed ::a/macro]
     :var     [::a/var-backed]
     :special (-> [::a/special]
-                 (?> (get meta-m :special-form) (conj ::a/var-backed))
-                 (?> (get meta-m :macro)        (conj ::a/macro)))
+                 (?> (get grim-meta :special-form) (conj ::a/var-backed))
+                 (?> (get grim-meta :macro)        (conj ::a/macro)))
 
     (throw (IllegalArgumentException.
              (str "Unknown type of def: " t))))))
 
-(defmulti grim-thing->gren-thing gt/tag)
+(defmulti grim-thing->gren-thing (fn [_ tval] (gt/tag tval)))
 
-(defmethod grim-thing->gren-thing ::grim-t/def [d]
+(defmethod grim-thing->gren-thing ::grim-t/def [grim-meta d]
   (->> (t/map->thing {:coords (get-all-coords d)})
        (t/attach-aspect t/def-for-aspect ::t/find)
-       (t/attach-aspects a/def-for-aspect (determine-aspects d))))
+       (t/attach-aspects a/def-for-aspect (determine-aspects grim-meta))))
 
-(defmethod grim-thing->gren-thing :default [t]
+(defmethod grim-thing->gren-thing :default [_ t]
   (if-let [gren-tag (get grim-tag->gren-tag (gt/tag t))]
     (->> (t/map->thing {:coords (get-all-coords t)})
          (t/attach-aspect t/def-for-aspect gren-tag))
@@ -108,7 +107,7 @@
 ;;
 (defn read-notes [config thing]
   (let [notes (grim/list-notes config thing)]
-    (if (or (not (grim-t/group? thing)) (either/succeed? notes))
+    (if (or (grim-t/versioned? thing) (either/succeed? notes))
       (map #(assoc % :contents (either/result (grim/read-note config %)))
            (either/result notes))
       [])))
@@ -129,33 +128,19 @@
                   gren-thing)
     gren-thing))
 
-;; REFACTOR: Merge this with grim-with-meta->gren. It doesn't make sense to put
-;;           :meta, :examples and :notes just do pull them out again in the next
-;;           step. (RM 2015-07-25)
-(def attach-meta
-  (memoize
-    (fn attach-meta-fn [lib-grim-config grim-things]
-      (->> grim-things
-           (map #(assoc %
-                        :meta
-                        (or (either/result (grim/read-meta lib-grim-config %))
-                            {})))
-           (remove #(and (grim-t/def? %)
-                         (= :sentinel (safe-get-in % [:meta :type]))))
-           (map #(assoc % :examples
-                        (read-examples lib-grim-config %)))
-           (map #(assoc % :notes
-                        (read-notes lib-grim-config %)))))))
+(defn grim-t->gren-t-with-bars [lib-grim-config grim-t]
+  (let [grim-meta (either/result (grim/read-meta lib-grim-config grim-t))]
+    (->> grim-t
+         (grim-thing->gren-thing grim-meta)
+         (?>> (seq grim-meta)
+              (t/attach-bar b/def-for-bar-type ::b/any grim-meta))
+         (maybe-attach :jolly.bars/examples
+                       (read-examples lib-grim-config grim-t))
+         (maybe-attach :jolly.bars/notes
+                       (read-notes lib-grim-config grim-t)))))
 
-(defn grim-with-meta->gren [grim-things-with-meta]
-  (map (fn map-fn [grim-t]
-         (->> grim-t
-              grim-thing->gren-thing
-              (t/attach-bar b/def-for-bar-type
-                            ::b/any
-                            (t-utils/safe-get grim-t :meta))
-              (maybe-attach :jolly.bars/examples
-                            (t-utils/safe-get grim-t :examples))
-              (maybe-attach :jolly.bars/notes
-                            (t-utils/safe-get grim-t :notes))))
-       grim-things-with-meta))
+(defn grim-ts->gren-ts-with-bars [lib-grim-config grim-ts]
+  (->> grim-ts
+       (map #(grim-t->gren-t-with-bars lib-grim-config %))
+       (remove #(and (t/has-aspect? ::t/find %)
+                     (= :sentinel (get-in % [:bars ::b/any :type]))))))
