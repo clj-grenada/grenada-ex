@@ -91,13 +91,11 @@
 ;;
 ;;  - Don't be fooled by the doc string of grimoire.api/list-examples.
 ;;
-(def read-examples
-  (memoize
-    (fn read-examples-fn [config thing]
-      (if (grim-t/def? thing)
-        (map #(assoc % :contents (either/result (grim/read-example config %)))
-             (either/result (grim/list-examples config thing)))
-        []))))
+(defn read-examples [config thing]
+  (if (grim-t/def? thing)
+    (map #(assoc % :contents (either/result (grim/read-example config %)))
+         (either/result (grim/list-examples config thing)))
+    []))
 
 ;; Note:
 ;;
@@ -108,14 +106,12 @@
 ;;    doc string as list-examples does. (See note above.) It Fails if there are
 ;;    no notes on a group. So we need a different clause.
 ;;
-(def read-notes
-  (memoize
-    (fn read-notes-fn [config thing]
-      (let [notes (grim/list-notes config thing)]
-        (if (or (not (grim-t/group? thing)) (either/succeed? notes))
-          (map #(assoc % :contents (either/result (grim/read-note config %)))
-               (either/result notes))
-          [])))))
+(defn read-notes [config thing]
+  (let [notes (grim/list-notes config thing)]
+    (if (or (not (grim-t/group? thing)) (either/succeed? notes))
+      (map #(assoc % :contents (either/result (grim/read-note config %)))
+           (either/result notes))
+      [])))
 
 (defn maybe-attach
   "
