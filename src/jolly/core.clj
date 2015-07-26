@@ -124,12 +124,14 @@
 
   sths … somethings"
   [bar-type-tag grim-sths gren-thing]
+  {:pre [(t/thing?+ gren-thing)]}
   (if-not (empty? grim-sths)
     (t/attach-bar jolly.bars/def-for-bar-type
                   bar-type-tag
                   (map #(t-utils/safe-select-keys % #{:name :contents})
                        grim-sths)
-                  gren-thing)))
+                  gren-thing)
+    gren-thing))
 
 ;; REFACTOR: Merge this with grim-with-meta->gren. It doesn't make sense to put
 ;;           :meta, :examples and :notes just do pull them out again in the next
