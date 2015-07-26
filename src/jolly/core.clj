@@ -130,17 +130,17 @@
 
 (defn grim-t->gren-t-with-bars [lib-grim-config grim-t]
   (let [grim-meta (either/result (grim/read-meta lib-grim-config grim-t))]
-    (->> grim-t
-         (grim-thing->gren-thing grim-meta)
-         (?>> (seq grim-meta)
-              (t/attach-bar b/def-for-bar-type ::b/any grim-meta))
-         (maybe-attach :jolly.bars/examples
-                       (read-examples lib-grim-config grim-t))
-         (maybe-attach :jolly.bars/notes
-                       (read-notes lib-grim-config grim-t)))))
+    (if-not (and (grim-t/def? grim-t) (= :sentinel (safe-get grim-meta :type)))
+      (->> grim-t
+           (grim-thing->gren-thing grim-meta)
+           (?>> (seq grim-meta)
+                (t/attach-bar b/def-for-bar-type ::b/any grim-meta))
+           (maybe-attach :jolly.bars/examples
+                         (read-examples lib-grim-config grim-t))
+           (maybe-attach :jolly.bars/notes
+                         (read-notes lib-grim-config grim-t))))))
 
 (defn grim-ts->gren-ts-with-bars [lib-grim-config grim-ts]
   (->> grim-ts
        (map #(grim-t->gren-t-with-bars lib-grim-config %))
-       (remove #(and (t/has-aspect? ::t/find %)
-                     (= :sentinel (get-in % [:bars ::b/any :type]))))))
+       (remove nil?)))
