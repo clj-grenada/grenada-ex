@@ -1,5 +1,6 @@
-;;; These are taken as test input from http://conj.io/contributing.
+These are taken as test input from http://conj.io/contributing.
 
+```clojure
 4
 ;; => 4
 
@@ -11,6 +12,7 @@
 (read)
 ;; < (1 2 3)
 ;; => (1 2 3)
+
 (do  (.write *err* "To error!\n")
      (.write *out* "To out!\n")
     nil)
@@ -26,3 +28,4 @@
 ;;     :file clojure/core.clj,
 ;;     :name for,
 ;;     :macro true}
+```
