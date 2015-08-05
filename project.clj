@@ -10,6 +10,8 @@
                  [org.clj-grenada/jolly "0.1.0-SNAPSHOT"]
                  ;; Remove the (remove … ".git") when bumping.
                  [org.clojure-grimoire/lib-grimoire "0.10.2"]
+                 [instaparse "1.4.1"]
+                 [enlive "1.1.6"]
 
                  ; dependencies to be scraped – should go in dev profile
                  [clj-grenada/darkestperu "0.1.0-SNAPSHOT"]]

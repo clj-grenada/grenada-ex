@@ -3,6 +3,9 @@
             [clojure.repl :refer [pst doc find-doc]]
             [clojure.tools.namespace.repl :refer [refresh]]
             [clojure.pprint :refer [pprint]]
+            [clojure.string :as string]
+            [net.cgrand.enlive-html :as enlive]
+            [instaparse.core :as insta]
             [plumbing.graph :as graph]
             [plumbing.core :refer [fnk safe-get safe-get-in ?> <-] :as plumbing]
             [guten-tag.core :as gt]
@@ -59,5 +62,29 @@
                             {:group "org.clojars.rmoehn"
                              :artifact "grim-clj-core"
                              :version "0.1.0"})
+
+  (def example-parser (insta/parser (io/resource "dorogram.bnf")))
+  (def examples (insta/parse example-parser (slurp (io/resource "grim-examples.clj"))))
+  (->> examples
+       (map (fn [[_ & parts]]
+         (into {} (map (fn [[tag & strings]]
+                         [tag (string/join "\n" strings)])
+                       parts))))
+       (filter (fn [m] (= (set (keys m)) #{:expressions :result})))
+       (def processed))
+
+  (doseq [p processed]
+    (let [expected-result (read-string (safe-get p :result))
+          actual-result (try
+                          (eval (read-string (safe-get p :expressions)))
+                          (catch Exception e))]
+      (when-not (=  expected-result actual-result)
+        (println "\nResults don't match. Expressions:"
+                 (safe-get p :expressions)
+                 "\nExpected:"
+                 expected-result
+                 "\nActual:"
+                 actual-result "\n●"))))
+  (printf "Checked %d of %d chunks.\n" (count processed) (count examples))
 
   )
