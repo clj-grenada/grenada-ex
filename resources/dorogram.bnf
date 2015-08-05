@@ -1,10 +1,10 @@
-doc                  = (code-block | <text-line>)*
+<doc> = (code-block | <text-line>)*
 
-<code-block>         = <start-fence> code <end-fence>
-code                 = chunk (<empty-line> chunk)*
-chunk                = expressions special-comments?
+<code-block> = <start-fence> code <end-fence>
+<code>       = chunk (<empty-line> chunk)*
+chunk        = expressions special-comments?
 
-expressions = expression-line+
+expressions      = expression-line+
 <expression-line> = !special-comments nonempty-text-line
 
 <special-comments> = input? stderr? stdout? result
