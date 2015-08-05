@@ -1,13 +1,17 @@
-These are taken as test input from http://conj.io/contributing.
+These (except the second) are taken as test input from
+http://conj.io/contributing.
 
 ```clojure
 4
 ;; => 4
 
+(map string/reverse  ["warbler" "sheep" "jellyfish"])
+;; => ("relbraw" "peehs" "hsifyllej")
+
 (inc  [1])
 ;; Ouch!
-;; => ClassCastException clojure.lang.PersistentVector cannot be cast to
-;; java.lang.Number
+;; E> ClassCastException clojure.lang.PersistentVector cannot be cast to
+;;    java.lang.Number
 
 (read)
 ;; < (1 2 3)
@@ -20,8 +24,8 @@ These are taken as test input from http://conj.io/contributing.
 ;; > To out!
 ;; => nil
 
-(print  (meta #'clojure.core/for))
-;; => {:arglists ([seq-exprs body-expr]),
+(meta #'clojure.core/for)
+;; D> {:arglists ([seq-exprs body-expr]),
 ;;     :added 1.0,
 ;;     :line 4444,
 ;;     :column 1,
