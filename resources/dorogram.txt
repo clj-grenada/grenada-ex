@@ -1,0 +1,12 @@
+doc         = (text | code-block)+
+code-block  = start-fence code end-fence
+start-fence = "```clojure\n"
+end-fence   = "```\n"
+code        = (expressions special-comments)+
+special-comments = input? stderr? stdout? result
+input         = #"(?xms) \h* ;+ \h+ <  \h+" text-line comment-line*
+stderr        = #"(?xms) \h* ;+ \h+ >> \h+" text-line comment-line*
+stdout        = #"(?xms) \h* ;+ \h+ >  \h+" text-line comment-line*
+result        = #"(?xms) \h* ;+ \h+ => \h+" text-line comment-line*
+comment-line  = #"(?xms) \h* ;+ \h*"        text-line
+text-line     = #"(?xms) [^\R]*" \R
