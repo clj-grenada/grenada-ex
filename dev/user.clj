@@ -73,6 +73,8 @@
        (filter (fn [m] (= (set (keys m)) #{:expressions :result})))
        (def processed))
 
+  ;; TODO: Evaluate those that have nothing.
+
   (doseq [p processed]
     (let [expected-result (read-string (safe-get p :result))
           actual-result (try
