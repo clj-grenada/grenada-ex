@@ -4,15 +4,17 @@ doc                  = (code-block | <text-line>)*
 code                 = chunk (<empty-line> chunk)*
 chunk                = expressions special-comments?
 
-expressions = !special-comments nonempty-text-line+
+expressions = expression-line+
+<expression-line> = !special-comments nonempty-text-line
 
-special-comments = input? stderr? stdout? result
-input            = <#"(?xms) ^ \h* ;+ \h+ <  \h+"> sc-rest
-stderr           = <#"(?xms) ^ \h* ;+ \h+ >> \h+"> sc-rest
-stdout           = <#"(?xms) ^ \h* ;+ \h+ >  \h+"> sc-rest
-result           = <#"(?xms) ^ \h* ;+ \h+ => \h+"> sc-rest
-<comment-line>   = <#"(?xms) ^ \h* ;+ \h*"> text <linebreak>
-<sc-rest>        = text <linebreak> comment-line*
+<special-comments> = input? stderr? stdout? result
+input              = <#"(?xms) ^ \h* ;+ \h+ <  \h+"> sc-rest
+stderr             = <#"(?xms) ^ \h* ;+ \h+ >> \h+"> sc-rest
+stdout             = <#"(?xms) ^ \h* ;+ \h+ >  \h+"> sc-rest
+result             = <#"(?xms) ^ \h* ;+ \h+ => \h+"> sc-rest
+<comment-line>     = !(input | stderr | stdout | result) 
+                     <#"(?xms) ^ \h* ;+ \h+"> text <linebreak>
+<sc-rest>          = text <linebreak> comment-line*
 
 fence-line  = start-fence | end-fence
 start-fence = #"(?xms) ^ \h* ```clojure $" linebreak
